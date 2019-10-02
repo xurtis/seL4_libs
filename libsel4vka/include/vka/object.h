@@ -232,14 +232,25 @@ static inline int vka_alloc_page_table(vka_t *vka, vka_object_t *result)
     return vka_alloc_object(vka, kobject_get_type(KOBJECT_PAGE_TABLE, 0), seL4_PageTableBits, result);
 }
 
-#ifdef CONFIG_CACHE_COLORING
-
 static inline int vka_alloc_kernel_image(vka_t *vka, vka_object_t *result)
 {
+#ifdef CONFIG_KERNEL_IMAGES
     return vka_alloc_object(vka, kobject_get_type(KOBJECT_KERNEL_IMAGE, 0), seL4_KernelImageBits, result);
+#else
+    ZF_LOGW("Allocating kernel image without kernel configuration");
+    return ENOSYS;
+#endif
 }
 
+static inline int vka_alloc_kernel_memory(vka_t *vka, uint32_t size_bits, vka_object_t *result)
+{
+#ifdef CONFIG_KERNEL_IMAGES
+    return vka_alloc_object(vka, kobject_get_type(KOBJECT_KERNEL_MEMORY, 0), size_bits, result);
+#else
+    ZF_LOGW("Allocating kernel memory without kernel configuration");
+    return ENOSYS;
 #endif
+}
 
 /* Implement a kobject interface */
 static inline int vka_alloc_kobject(vka_t *vka, kobject_t type, seL4_Word size_bits,
@@ -317,9 +328,11 @@ vka_get_object_size(seL4_Word objectType, seL4_Word objectSize)
         return seL4_NotificationBits;
     case seL4_CapTableObject:
         return (seL4_SlotBits + objectSize);
-#ifdef CONFIG_CACHE_COLORING
+#ifdef CONFIG_KERNEL_IMAGES
     case seL4_KernelImageObject:
         return seL4_KernelImageBits;
+    case seL4_KernelMemoryObject:
+        return objectSize;
 #endif
     default:
         return vka_arch_get_object_size(objectType);

@@ -15,6 +15,7 @@
 /* This file provides various small API wrappers either for simple convenience, backwards compatibility,
    or abstracting different kernel versions */
 
+#include <autoconf.h>
 #include <sel4/sel4.h>
 #include <sel4utils/mcs_api.h>
 
@@ -33,4 +34,24 @@ static inline seL4_Word api_make_guard_word(seL4_Word guard, seL4_Word guard_siz
 static inline seL4_Word api_make_guard_skip_word(seL4_Word guard_size)
 {
     return api_make_guard_word(0, guard_size);
+}
+
+static inline seL4_Error api_kernel_memory_map(UNUSED seL4_CPtr kmemory, UNUSED seL4_CPtr kimage)
+{
+    if (!config_set(CONFIG_KERNEL_IMAGES)) {
+        return (seL4_Error) - ENOSYS;
+    }
+#ifdef CONFIG_KERNEL_IMAGES
+    return seL4_KernelMemory_Map(kmemory, kimage);
+#endif
+}
+
+static inline seL4_Error api_kernel_memory_unmap(UNUSED seL4_CPtr kmemory)
+{
+    if (!config_set(CONFIG_KERNEL_IMAGES)) {
+        return (seL4_Error) - ENOSYS;
+    }
+#ifdef CONFIG_KERNEL_IMAGES
+    return seL4_KernelMemory_Unmap(kmemory);
+#endif
 }

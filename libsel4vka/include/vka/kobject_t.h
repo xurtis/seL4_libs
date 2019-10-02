@@ -30,9 +30,8 @@ enum _kobject_type {
     KOBJECT_NOTIFICATION,
     KOBJECT_REPLY,
     KOBJECT_SCHED_CONTEXT,
-#ifdef CONFIG_CACHE_COLORING
     KOBJECT_KERNEL_IMAGE,
-#endif
+    KOBJECT_KERNEL_MEMORY,
     NUM_KOBJECT_TYPES
 
 };
@@ -70,6 +69,12 @@ static inline seL4_Word kobject_get_size(kobject_t type, seL4_Word objectSize)
     case KOBJECT_SCHED_CONTEXT:
         return objectSize > seL4_MinSchedContextBits ? objectSize : seL4_MinSchedContextBits;
 #endif
+#ifdef CONFIG_KERNEL_IMAGES
+    case KOBJECT_KERNEL_IMAGE:
+        return seL4_KernelImageBits;
+    case KOBJECT_KERNEL_MEMORY:
+        return objectSize;
+#endif
 #ifdef CONFIG_CACHE_COLORING
     case KOBJECT_KERNEL_IMAGE:
         return seL4_KernelImageBits;
@@ -101,9 +106,11 @@ static inline seL4_Word kobject_get_type(kobject_t type, seL4_Word objectSize)
     case KOBJECT_REPLY:
         return seL4_ReplyObject;
 #endif
-#ifdef CONFIG_CACHE_COLORING
+#ifdef CONFIG_KERNEL_IMAGES
     case KOBJECT_KERNEL_IMAGE:
         return seL4_KernelImageObject;
+    case KOBJECT_KERNEL_MEMORY:
+        return seL4_KernelMemoryObject;
 #endif
     default:
         return arch_kobject_get_type(type, objectSize);

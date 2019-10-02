@@ -76,6 +76,11 @@ struct env {
     int cspace_size_bits;
     int num_regions;
     sel4utils_elf_region_t regions[MAX_REGIONS];
+
+#ifdef CONFIG_KERNEL_IMAGES
+    /* Number of memory objects of each level needed to map a kernel image */
+    seL4_Word         kernel_image_level_count[seL4_KernelImageNumLevels];
+#endif
 };
 typedef struct env *env_t;
 

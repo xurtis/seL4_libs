@@ -55,3 +55,13 @@ static inline seL4_Error api_kernel_memory_unmap(UNUSED seL4_CPtr kmemory)
     return seL4_KernelMemory_Unmap(kmemory);
 #endif
 }
+
+static inline seL4_Error api_kernel_image_clone(UNUSED seL4_CPtr dest, UNUSED seL4_CPtr src)
+{
+    if (!config_set(CONFIG_KERNEL_IMAGES)) {
+        return (seL4_Error) - ENOSYS;
+    }
+#ifdef CONFIG_KERNEL_IMAGES
+    return seL4_KernelImage_Clone(dest, src);
+#endif
+}

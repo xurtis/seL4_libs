@@ -65,3 +65,13 @@ static inline seL4_Error api_kernel_image_clone(UNUSED seL4_CPtr dest, UNUSED se
     return seL4_KernelImage_Clone(dest, src);
 #endif
 }
+
+static inline seL4_Error api_kernel_image_bind(UNUSED seL4_CPtr image, UNUSED seL4_CPtr vspace)
+{
+    if (!config_set(CONFIG_KERNEL_IMAGES)) {
+        return (seL4_Error) - ENOSYS;
+    }
+#ifdef CONFIG_KERNEL_IMAGES
+    return seL4_KernelImage_Bind(image, vspace);
+#endif
+}

@@ -20,7 +20,8 @@
 
 /* Helper for generating a guard. The guard itself is a bitpacked data structure, but is passed
    to invocations as a raw word */
-static inline seL4_Word api_make_guard_word(seL4_Word guard, seL4_Word guard_size) {
+static inline seL4_Word api_make_guard_word(seL4_Word guard, seL4_Word guard_size)
+{
     /* the bitfield generated _new function will assert that our chosen values fit
        into the datastructure so there is no need for us to do anything beyond
        blindly pass them in */
@@ -29,6 +30,7 @@ static inline seL4_Word api_make_guard_word(seL4_Word guard, seL4_Word guard_siz
 
 /* Helper for making an empty guard. Typically a guard matches zeroes and is effectively acting
    as a skip. This is a convenience wrapper and api_make_guard_word */
-static inline seL4_Word api_make_guard_skip_word(seL4_Word guard_size) {
+static inline seL4_Word api_make_guard_skip_word(seL4_Word guard_size)
+{
     return api_make_guard_word(0, guard_size);
 }

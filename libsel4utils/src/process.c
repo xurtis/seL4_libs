@@ -24,6 +24,7 @@
 #include <vka/capops.h>
 #include <stdarg.h>
 #include <sel4runtime/auxv.h>
+#include <sel4utils/api.h>
 #include <sel4utils/vspace.h>
 #include <sel4utils/process.h>
 #include <sel4utils/util.h>
@@ -439,8 +440,20 @@ static seL4_CPtr assign_asid_pool(seL4_CPtr asid_pool, seL4_CPtr pd)
     return error;
 }
 
+static seL4_CPtr get_kernel_image(seL4_CPtr kernel_image)
+{
+#ifdef CONFIG_KERNEL_IMAGES
+    if (kernel_image == 0) {
+        ZF_LOGW("This method will fail if run in a thread that is not in the root server cspace\n");
+        kernel_image = seL4_CapInitKernelImage;
+    }
+#endif
+
+    return kernel_image;
+}
+
 static int create_cspace(vka_t *vka, int size_bits, sel4utils_process_t *process,
-                         seL4_Word cspace_root_data, seL4_CPtr asid_pool)
+                         seL4_Word cspace_root_data, seL4_CPtr asid_pool, seL4_CPtr kernel_image)
 {
     /* create a cspace */
     int error = vka_alloc_cnode_object(vka, size_bits, &process->cspace);
@@ -482,6 +495,15 @@ static int create_cspace(vka_t *vka, int size_bits, sel4utils_process_t *process
     }
     assert(slot == SEL4UTILS_ASID_POOL_SLOT);
 
+    if (!config_set(CONFIG_X86_64)) {
+        printf("Copying kernel image capability: %lu\n", get_kernel_image(kernel_image));
+        vka_cspace_make_path(vka, get_kernel_image(kernel_image), &src);
+        slot = sel4utils_copy_path_to_process(process, src);
+        assert(slot == SEL4UTILS_KERNEL_IMAGE_SLOT);
+    } else {
+        allocate_next_slot(process);
+    }
+
     return 0;
 }
 
@@ -520,6 +542,12 @@ int sel4utils_configure_process_custom(sel4utils_process_t *process, vka_t *vka,
             assign_asid_pool(config.asid_pool, process->pd.cptr) != seL4_NoError) {
             goto error;
         }
+
+        /* Bind to a kernel image */
+        if (config.kernel_image != seL4_CapNull &&
+            api_kernel_image_bind(get_kernel_image(config.kernel_image), process->pd.cptr) != seL4_NoError) {
+            goto error;
+        }
     } else {
         process->pd = config.page_dir;
     }
@@ -535,7 +563,7 @@ int sel4utils_configure_process_custom(sel4utils_process_t *process, vka_t *vka,
     process->own_cspace = config.create_cspace;
     if (config.create_cspace) {
         if (create_cspace(vka, config.one_level_cspace_size_bits, process, cspace_root_data,
-                          config.asid_pool) != 0) {
+                          config.asid_pool, config.kernel_image) != 0) {
             goto error;
         }
     } else {
@@ -736,6 +764,10 @@ seL4_CPtr sel4utils_process_init_cap(void *data, seL4_CPtr cap)
 #ifdef CONFIG_KERNEL_MCS
     case seL4_CapInitThreadSC:
         return SEL4UTILS_SCHED_CONTEXT_SLOT;
+#endif
+#ifdef CONFIG_KERNEL_IMAGES
+    case seL4_CapInitKernelImage:
+        return SEL4UTILS_KERNEL_IMAGE_SLOT;
 #endif
     default:
         ZF_LOGE("sel4utils does not copy this cap (%zu) to new processes", cap);

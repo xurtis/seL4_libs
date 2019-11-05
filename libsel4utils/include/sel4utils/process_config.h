@@ -49,6 +49,8 @@ typedef struct {
     /* if not what is the page dir, and what is the vspace */
     vspace_t *vspace;
     vka_object_t page_dir;
+    /* Kernel image to bind to VSpace */
+    seL4_CPtr kernel_image;
 
     /* if so, is there a regions you want left clear?*/
     sel4utils_elf_region_t *reservations;
@@ -78,10 +80,20 @@ static inline sel4utils_process_config_t process_config_auth(sel4utils_process_c
     return config;
 }
 
+static inline sel4utils_process_config_t process_config_kernel_image(sel4utils_process_config_t config,
+                                                                     seL4_CPtr kernel_image)
+{
+    config.kernel_image = kernel_image;
+    return config;
+}
+
 static inline sel4utils_process_config_t process_config_new(simple_t *simple)
 {
     sel4utils_process_config_t config = {0};
     config = process_config_auth(config, simple_get_tcb(simple));
+#ifdef CONFIG_KERNEL_IMAGES
+    config = process_config_asid_pool(config, simple_get_init_cap(simple, seL4_CapInitKernelImage));
+#endif
     return process_config_asid_pool(config, simple_get_init_cap(simple, seL4_CapInitThreadASIDPool));
 }
 

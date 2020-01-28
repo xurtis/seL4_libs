@@ -174,6 +174,15 @@ static inline int vka_alloc_endpoint(vka_t *vka, vka_object_t *result)
     return vka_alloc_object(vka, seL4_EndpointObject, seL4_EndpointBits, result);
 }
 
+static inline int vka_alloc_donating_endpoint(vka_t *vka, vka_object_t *result)
+{
+#ifdef CONFIG_KERNEL_MCS
+    return vka_alloc_object(vka, seL4_DonatingEndpointObject, seL4_EndpointBits, result);
+#else
+    return vka_alloc_object(vka, seL4_EndpointObject, seL4_EndpointBits, result);
+#endif
+}
+
 static inline int vka_alloc_notification(vka_t *vka, vka_object_t *result)
 {
     return vka_alloc_object(vka, seL4_NotificationObject, seL4_NotificationBits, result);
@@ -263,6 +272,7 @@ static inline int vka_alloc_kobject(vka_t *vka, kobject_t type, seL4_Word size_b
 
 LEAKY(tcb)
 LEAKY(endpoint)
+LEAKY(donating_endpoint)
 LEAKY(notification)
 LEAKY(page_directory)
 LEAKY(page_table)
@@ -310,6 +320,8 @@ vka_get_object_size(seL4_Word objectType, seL4_Word objectSize)
         return objectSize > seL4_MinSchedContextBits ? objectSize : seL4_MinSchedContextBits;
     case seL4_ReplyObject:
         return seL4_ReplyBits;
+    case seL4_DonatingEndpointObject:
+        return seL4_EndpointBits;
 #endif
     case seL4_EndpointObject:
         return seL4_EndpointBits;

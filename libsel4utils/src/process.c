@@ -495,7 +495,7 @@ static int create_cspace(vka_t *vka, int size_bits, sel4utils_process_t *process
     }
     assert(slot == SEL4UTILS_ASID_POOL_SLOT);
 
-    if (!config_set(CONFIG_X86_64)) {
+    if (config_set(CONFIG_KERNEL_IMAGES)) {
         printf("Copying kernel image capability: %lu\n", get_kernel_image(kernel_image));
         vka_cspace_make_path(vka, get_kernel_image(kernel_image), &src);
         slot = sel4utils_copy_path_to_process(process, src);
@@ -544,8 +544,7 @@ int sel4utils_configure_process_custom(sel4utils_process_t *process, vka_t *vka,
         }
 
         /* Bind to a kernel image */
-        if (config.kernel_image != seL4_CapNull &&
-            api_kernel_image_bind(get_kernel_image(config.kernel_image), process->pd.cptr) != seL4_NoError) {
+        if (config_set(CONFIG_KERNEL_IMAGES) && api_kernel_image_bind(get_kernel_image(config.kernel_image), process->pd.cptr) != seL4_NoError) {
             goto error;
         }
     } else {

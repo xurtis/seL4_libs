@@ -64,6 +64,7 @@ struct env {
     seL4_CPtr sched_ctrl;
 #ifdef CONFIG_KERNEL_IMAGES
     seL4_CPtr kernel_image;
+    seL4_CPtr kiid_table;
 #endif
 #ifdef CONFIG_IOMMU
     seL4_CPtr io_space;

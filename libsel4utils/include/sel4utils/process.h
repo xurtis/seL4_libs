@@ -84,20 +84,23 @@ enum sel4utils_cspace_layout {
      * in. 0 if this kernel does not support asid pools */
     SEL4UTILS_ASID_POOL_SLOT = 4,
 
+    /* The slot for this process's KIID table slot */
+    SEL4UTILS_KIID_TABLE_SLOT = 5,
+
     /* The slot for this process's kernel image */
-    SEL4UTILS_KERNEL_IMAGE_SLOT = 5,
+    SEL4UTILS_KERNEL_IMAGE_SLOT = 6,
 
     /* the slot for this processes tcb */
-    SEL4UTILS_TCB_SLOT = 6,
+    SEL4UTILS_TCB_SLOT = 7,
 
     /* the slot for this processes sc */
-    SEL4UTILS_SCHED_CONTEXT_SLOT = 7,
+    SEL4UTILS_SCHED_CONTEXT_SLOT = 8,
 
     /* The slot for this processes reply object */
-    SEL4UTILS_REPLY_SLOT = 8,
+    SEL4UTILS_REPLY_SLOT = 9,
 
     /* First free slot in the cspace configured by sel4utils */
-    SEL4UTILS_FIRST_FREE = 9
+    SEL4UTILS_FIRST_FREE = 10
 };
 
 /**

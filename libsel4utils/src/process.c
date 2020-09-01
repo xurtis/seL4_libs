@@ -452,8 +452,21 @@ static seL4_CPtr get_kernel_image(seL4_CPtr kernel_image)
     return kernel_image;
 }
 
+static seL4_CPtr get_kiid_table(seL4_CPtr kiid_table)
+{
+#ifdef CONFIG_KERNEL_IMAGES
+    if (kiid_table == 0) {
+        ZF_LOGW("This method will fail if run in a thread that is not in the root server cspace\n");
+        kiid_table = seL4_CapKIIDTable;
+    }
+#endif
+
+    return kiid_table;
+}
+
 static int create_cspace(vka_t *vka, int size_bits, sel4utils_process_t *process,
-                         seL4_Word cspace_root_data, seL4_CPtr asid_pool, seL4_CPtr kernel_image)
+                         seL4_Word cspace_root_data, seL4_CPtr asid_pool, seL4_CPtr kernel_image,
+                         seL4_CPtr kiid_table)
 {
     /* create a cspace */
     int error = vka_alloc_cnode_object(vka, size_bits, &process->cspace);
@@ -496,11 +509,14 @@ static int create_cspace(vka_t *vka, int size_bits, sel4utils_process_t *process
     assert(slot == SEL4UTILS_ASID_POOL_SLOT);
 
     if (config_set(CONFIG_KERNEL_IMAGES)) {
-        printf("Copying kernel image capability: %lu\n", get_kernel_image(kernel_image));
+        vka_cspace_make_path(vka, get_kiid_table(kiid_table), &src);
+        slot = sel4utils_copy_path_to_process(process, src);
+        assert(slot == SEL4UTILS_KIID_TABLE_SLOT);
         vka_cspace_make_path(vka, get_kernel_image(kernel_image), &src);
         slot = sel4utils_copy_path_to_process(process, src);
         assert(slot == SEL4UTILS_KERNEL_IMAGE_SLOT);
     } else {
+        allocate_next_slot(process);
         allocate_next_slot(process);
     }
 
@@ -562,7 +578,7 @@ int sel4utils_configure_process_custom(sel4utils_process_t *process, vka_t *vka,
     process->own_cspace = config.create_cspace;
     if (config.create_cspace) {
         if (create_cspace(vka, config.one_level_cspace_size_bits, process, cspace_root_data,
-                          config.asid_pool, config.kernel_image) != 0) {
+                          config.asid_pool, config.kernel_image, config.kiid_table) != 0) {
             goto error;
         }
     } else {

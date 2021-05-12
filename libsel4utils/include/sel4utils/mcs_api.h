@@ -187,3 +187,15 @@ static inline seL4_Error api_sched_ctrl_configure(UNUSED seL4_CPtr sched_ctrl, U
     return seL4_SchedControl_Configure(sched_ctrl, sc, budget, period, refills, badge);
 #endif
 }
+
+static inline seL4_Error api_sched_ctrl_configure_sporadic(UNUSED seL4_CPtr sched_ctrl, UNUSED seL4_CPtr sc,
+                                                  UNUSED uint64_t budget, UNUSED uint64_t period,
+                                                  UNUSED seL4_Word refills, UNUSED seL4_Word badge)
+{
+    if (!config_set(CONFIG_KERNEL_MCS)) {
+        return (seL4_Error) - ENOSYS;
+    }
+#ifdef CONFIG_KERNEL_MCS
+    return seL4_SchedControl_ConfigureFlags(sched_ctrl, sc, budget, period, refills, badge, seL4_SchedContext_Sporadic);
+#endif
+}

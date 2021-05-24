@@ -97,7 +97,7 @@ size_t field_count[seL4_NumLogTypeIds] = {
     [seL4_Log_TypeId(Irq)] = SMP_COND(2, 1),
     [seL4_Log_TypeId(Syscall)] = 1,
     [seL4_Log_TypeId(Invocation)] = 2,
-    [seL4_Log_TypeId(ThreadName)] = 2,
+    [seL4_Log_TypeId(ThreadName)] = 3,
 };
 
 /*
@@ -287,6 +287,9 @@ static int event_cbor64(seL4_LogEvent *event, cbor64_domain_t *domain, base64_t 
 
         cbor64_utf8_ref(streamer, domain, "thread");
         cbor64_uint(streamer, thread->thread);
+
+        cbor64_utf8_ref(streamer, domain, "sched-context");
+        cbor64_uint(streamer, thread->sched_context);
 
         cbor64_utf8_ref(streamer, domain, "name");
         cbor64_utf8_ref(streamer, domain, thread->name);

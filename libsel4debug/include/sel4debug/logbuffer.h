@@ -45,7 +45,7 @@ static int debug_log_buffer_init(vka_t *vka, vspace_t *vspace, vka_object_t *fra
         return err;
     }
 
-    vaddr = vspace_map_pages(vspace, &frame->cptr, NULL, seL4_AllRights, 1, seL4_LogBufferBits, 1);
+    vaddr = vspace_map_pages(vspace, &frame->cptr, NULL, seL4_AllRights, 1, seL4_LogBufferBits, 0);
     if (vaddr == NULL) {
         ZF_LOGE("Failed to map log buffer into VMM addrspace.\n");
         return -1;
